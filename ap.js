@@ -73,6 +73,7 @@ function renderStickers(stickerList) {
   });
 }
 
+// Inicialización de la modal legal con verificaciones seguras
 (function() {
   const modal = document.getElementById('legalModal');
   const acceptBtn = document.getElementById('acceptLegalBtn');
@@ -82,34 +83,45 @@ function renderStickers(stickerList) {
   const paypalLink = document.getElementById('paypalLink');
   if (paypalLink) paypalLink.href = 'https://paypal.me/' + PAYPAL_USER_NAME;
 
-  if (localStorage.getItem(STORAGE_PREFIX + 'legalAccepted') === 'true') {
+  if (modal && localStorage.getItem(STORAGE_PREFIX + 'legalAccepted') === 'true') {
     modal.style.display = 'none';
-    if (statusMsg.textContent === 'ACEPTA LOS TÉRMINOS PRIMERO') {
+    if (statusMsg && statusMsg.textContent === 'ACEPTA LOS TÉRMINOS PRIMERO') {
       statusMsg.textContent = 'TOCA PARA INICIAR';
     }
   }
 
-  acceptBtn.addEventListener('click', function(e) {
-    e.preventDefault(); e.stopPropagation();
-    localStorage.setItem(STORAGE_PREFIX + 'legalAccepted', 'true');
-    modal.style.display = 'none';
-    statusMsg.textContent = 'TOCA PARA INICIAR';
-    if (typeof startRadio === 'function' && tracks && tracks.length > 0) startRadio();
-  });
+  if (acceptBtn) {
+    acceptBtn.addEventListener('click', function(e) {
+      e.preventDefault(); e.stopPropagation();
+      localStorage.setItem(STORAGE_PREFIX + 'legalAccepted', 'true');
+      if (modal) modal.style.display = 'none';
+      if (statusMsg) statusMsg.textContent = 'TOCA PARA INICIAR';
+      if (typeof startRadio === 'function' && tracks && tracks.length > 0) startRadio();
+    });
+  }
 
-  openTermsBtn.addEventListener('click', function(e) {
-    e.preventDefault(); e.stopPropagation();
-    modal.style.display = 'flex';
-  });
+  if (openTermsBtn) {
+    openTermsBtn.addEventListener('click', function(e) {
+      e.preventDefault(); e.stopPropagation();
+      if (modal) modal.style.display = 'flex';
+    });
+  }
 
-  document.getElementById('linkPrivacy').addEventListener('click', function(e) {
-    e.preventDefault();
-    alert('Política de Privacidad - LabTeknøRadiø:\n\nNo recopilamos datos personales. Se utiliza almacenamiento local para guardar tu aceptación de términos y pegatinas.');
-  });
-  document.getElementById('linkTerms').addEventListener('click', function(e) {
-    e.preventDefault();
-    alert('Términos de Uso - LabTeknøRadiø:\n\nEl contenido musical transmitido pertenece a DaløreX. Queda prohibida la redistribución no autorizada.');
-  });
+  const linkPrivacy = document.getElementById('linkPrivacy');
+  if (linkPrivacy) {
+    linkPrivacy.addEventListener('click', function(e) {
+      e.preventDefault();
+      alert('Política de Privacidad - LabTeknøRadiø:\n\nNo recopilamos datos personales. Se utiliza almacenamiento local para guardar tu aceptación de términos y pegatinas.');
+    });
+  }
+
+  const linkTerms = document.getElementById('linkTerms');
+  if (linkTerms) {
+    linkTerms.addEventListener('click', function(e) {
+      e.preventDefault();
+      alert('Términos de Uso - LabTeknøRadiø:\n\nEl contenido musical transmitido pertenece a DaløreX. Queda prohibida la redistribución no autorizada.');
+    });
+  }
 })();
 
 const LOCAL_TRACKS = [
@@ -132,17 +144,21 @@ let gainA, gainB, sourceA, sourceB, activeGain = 'A', masterGain, mixTimer, anal
 let currentMode = 'set';
 
 const MIX_SEGMENT = 144, MIX_CROSSFADE = 15, PLAYLIST_CROSSFADE = 8;
+
 const vizCanvas = document.getElementById('vizCanvas');
-const ctxViz = vizCanvas.getContext('2d');
+const ctxViz = vizCanvas ? vizCanvas.getContext('2d') : null;
 const statusMsg = document.getElementById('statusMessage');
 const btnMix = document.getElementById('btnMix');
 const btnPlaylist = document.getElementById('btnPlaylist');
+
 let deckA = { source: null, gain: null, startTime: 0, offset: 0 };
 let deckB = { source: null, gain: null, startTime: 0, offset: 0 };
 
 function resizeVizCanvas() {
+  if (!vizCanvas || !vizCanvas.parentElement) return;
   const rect = vizCanvas.parentElement.getBoundingClientRect();
-  vizCanvas.width = rect.width; vizCanvas.height = rect.height;
+  vizCanvas.width = rect.width; 
+  vizCanvas.height = rect.height;
 }
 resizeVizCanvas();
 window.addEventListener('resize', resizeVizCanvas);
@@ -186,22 +202,24 @@ async function loadTracks(urlList) {
 
 async function initTracks() {
   try {
-    statusMsg.textContent = 'CARGANDO LAB-TRACKS...';
+    if (statusMsg) statusMsg.textContent = 'CARGANDO LAB-TRACKS...';
     await loadTracks(LOCAL_TRACKS);
     if (tracks.length === 0) {
-      statusMsg.textContent = 'MODO DEMO ONLINE...';
+      if (statusMsg) statusMsg.textContent = 'MODO DEMO ONLINE...';
       await loadTracks([DEMO_TRACK]);
     }
     if (tracks.length === 0) {
-      statusMsg.textContent = 'ERROR: SIN AUDIO';
+      if (statusMsg) statusMsg.textContent = 'ERROR: SIN AUDIO';
     } else {
-      statusMsg.textContent = (localStorage.getItem(STORAGE_PREFIX + 'legalAccepted') === 'true') 
-        ? 'TOCA PARA INICIAR' 
-        : 'ACEPTA LOS TÉRMINOS PRIMERO';
+      if (statusMsg) {
+        statusMsg.textContent = (localStorage.getItem(STORAGE_PREFIX + 'legalAccepted') === 'true') 
+          ? 'TOCA PARA INICIAR' 
+          : 'ACEPTA LOS TÉRMINOS PRIMERO';
+      }
       if (hasStarted && tracks.length > 0) startRadio();
     }
   } catch (e) {
-    statusMsg.textContent = 'ERROR DE SISTEMA';
+    if (statusMsg) statusMsg.textContent = 'ERROR DE SISTEMA';
   }
 }
 
@@ -229,7 +247,7 @@ function transitionToNext() {
     const dur = (currentMode === 'mix') ? MIX_CROSSFADE : PLAYLIST_CROSSFADE;
     crossfadeVolumes(currentGain, otherGain, dur);
     scheduleNext();
-    statusMsg.textContent = tracks[currentIdx].name;
+    if (statusMsg) statusMsg.textContent = tracks[currentIdx].name;
   }
 }
 
@@ -290,34 +308,46 @@ function startRadio() {
   const source = playSegment(gainA, currentIdx, 0, 0.9);
   if (source) {
     sourceA = source; activeGain = 'A'; deckA = { source, gain: gainA, startTime: audioCtx.currentTime, offset: 0 };
-    isPlaying = true; statusMsg.textContent = tracks[currentIdx].name; scheduleNext();
+    isPlaying = true; 
+    if (statusMsg) statusMsg.textContent = tracks[currentIdx].name; 
+    scheduleNext();
   }
 }
 
 function switchMode(mode) {
   if (currentMode === mode || tracks.length === 0) return;
   currentMode = mode;
-  btnMix.classList.toggle('active', mode === 'mix');
-  btnPlaylist.classList.toggle('active', mode === 'set' || mode === 'playlist');
+  if (btnMix) btnMix.classList.toggle('active', mode === 'mix');
+  if (btnPlaylist) btnPlaylist.classList.toggle('active', mode === 'set' || mode === 'playlist');
   if (isPlaying) { stopAll(); startRadio(); }
 }
 
-btnMix.addEventListener('click', e => { e.stopPropagation(); switchMode('mix'); });
-btnPlaylist.addEventListener('click', e => { e.stopPropagation(); switchMode('set'); });
+if (btnMix) btnMix.addEventListener('click', e => { e.stopPropagation(); switchMode('mix'); });
+if (btnPlaylist) btnPlaylist.addEventListener('click', e => { e.stopPropagation(); switchMode('set'); });
 
 function handleFirstTouch(e) {
-  if (document.getElementById('legalModal').style.display !== 'none') return;
+  const modal = document.getElementById('legalModal');
+  if (modal && modal.style.display !== 'none') return;
   if (e.target === btnMix || e.target === btnPlaylist || e.target.closest('.bottom-btn') || e.target.closest('.upload-btn-label')) return;
+  
   if (hasStarted) {
     if (e.target.closest('.display-screen') || e.target.id === 'vizCanvas') {
-      if (isPlaying) { stopAll(); isPlaying = false; statusMsg.textContent = 'PAUSA'; }
-      else startRadio();
+      if (isPlaying) { 
+        stopAll(); 
+        isPlaying = false; 
+        if (statusMsg) statusMsg.textContent = 'PAUSA'; 
+      } else {
+        startRadio();
+      }
     }
     return;
   }
   getAC(); hasStarted = true;
-  if (tracks.length === 0) { initTracks().then(() => { if(tracks.length>0) startRadio(); }); }
-  else startRadio();
+  if (tracks.length === 0) { 
+    initTracks().then(() => { if(tracks.length > 0) startRadio(); }); 
+  } else {
+    startRadio();
+  }
 }
 
 document.body.addEventListener('click', handleFirstTouch);
@@ -325,6 +355,8 @@ document.body.addEventListener('touchstart', handleFirstTouch);
 
 function drawVisualizer() {
   requestAnimationFrame(drawVisualizer);
+  if (!vizCanvas || !ctxViz) return;
+
   const w = vizCanvas.width, h = vizCanvas.height;
   const cx = w/2, cy = h/2, baseRadius = Math.min(w,h)*0.28, time = Date.now()*0.008;
   ctxViz.clearRect(0,0,w,h);
@@ -373,6 +405,10 @@ function drawVisualizer() {
   }
 }
 
-drawVisualizer();
-initStickerSystem();
-initTracks();
+// Inicializaciones cuando el DOM esté completamente cargado
+document.addEventListener('DOMContentLoaded', () => {
+  resizeVizCanvas();
+  drawVisualizer();
+  initStickerSystem();
+  initTracks();
+});
