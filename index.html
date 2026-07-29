@@ -1,212 +1,378 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  
-  <title>DaløreX LabTknøRadiø | Laboratorio Experimental de Música Techno e IA</title>
-  <meta name="description" content="Bienvenido a DaløreX LabTknøRadiø. Repositorio y laboratorio musical de toda la colección de música techno creada con ayuda de inteligencia artificial por DaløreX.">
-  <meta name="keywords" content="DaløreX LabTknøRadiø, DaløreX, Techno IA, Inteligencia Artificial, Radio Web, Laboratorio Techno, Hard Techno">
-  <meta name="robots" content="index, follow">
-  <meta name="author" content="DaløreX">
-  <link rel="canonical" href="https://dalorexlabteknoradio.github.io/">
+const PAYPAL_USER_NAME = 'DAVIDLOPEZDALOREX';
+const STORAGE_PREFIX = 'labtekno_';
 
-  <!-- Favicons y Manifest -->
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-  <link rel="manifest" href="site.webmanifest">
-  <meta name="theme-color" content="#00f3ff">
+const DEFAULT_STICKERS = [
+  'https://via.placeholder.com/120x60/00f3ff/000000?text=DALOREX+LAB',
+  'https://via.placeholder.com/90x90/ff0055/ffffff?text=TEKNO+RADIO'
+];
 
-  <!-- Open Graph / Meta Social -->
-  <meta property="og:title" content="DaløreX LabTknøRadiø">
-  <meta property="og:description" content="Laboratorio experimental y repositorio de producciones techno creadas con IA por DaløreX.">
-  <meta property="og:type" content="music.radio_station">
-  <meta property="og:url" content="https://dalorexlabteknoradio.github.io/">
-  <meta property="og:image" content="https://dalorexlabteknoradio.github.io/logo.png">
+function initStickerSystem() {
+  const container = document.getElementById('stickersContainer');
+  const uploadInput = document.getElementById('stickerUpload');
+  if (!container || !uploadInput) return;
 
-  <!-- Schema.org Datos Estructurados -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "RadioStation",
-    "name": "DaløreX LabTknøRadiø",
-    "url": "https://dalorexlabteknoradio.github.io/",
-    "description": "Repositorio y laboratorio experimental de música techno generada con inteligencia artificial.",
-    "genre": ["Techno", "Industrial Techno", "Hard Techno", "AI Techno"],
-    "broadcaster": {
-      "@type": "Person",
-      "name": "DaløreX"
+  let savedStickers = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'stickers') || 'null');
+  if (!savedStickers || savedStickers.length === 0) {
+    savedStickers = DEFAULT_STICKERS;
+  }
+
+  renderStickers(savedStickers);
+
+  uploadInput.addEventListener('change', function(e) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const newStickers = [...savedStickers];
+    let loadedCount = 0;
+
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        newStickers.push(event.target.result);
+        loadedCount++;
+        if (loadedCount === files.length) {
+          localStorage.setItem(STORAGE_PREFIX + 'stickers', JSON.stringify(newStickers));
+          renderStickers(newStickers);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+}
+
+function renderStickers(stickerList) {
+  const container = document.getElementById('stickersContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const positions = [
+    { top: '4%', left: '6%', rot: -12 },
+    { top: '3%', right: '8%', rot: 15 },
+    { top: '50%', left: '3%', rot: -8 },
+    { top: '52%', right: '4%', rot: 10 },
+    { bottom: '10%', left: '8%', rot: -5 },
+    { bottom: '11%', right: '7%', rot: 14 },
+    { top: '15%', left: '15%', rot: 6 },
+    { top: '18%', right: '16%', rot: -11 }
+  ];
+
+  stickerList.forEach((src, idx) => {
+    const img = document.createElement('img');
+    img.src = src;
+    img.className = 'dj-sticker';
+    
+    const pos = positions[idx % positions.length];
+    const rot = pos.rot || (Math.random() * 30 - 15);
+    
+    if (pos.top) img.style.top = pos.top;
+    if (pos.bottom) img.style.bottom = pos.bottom;
+    if (pos.left) img.style.left = pos.left;
+    if (pos.right) img.style.right = pos.right;
+
+    img.style.transform = `rotate(${rot}deg)`;
+    container.appendChild(img);
+  });
+}
+
+(function() {
+  const modal = document.getElementById('legalModal');
+  const acceptBtn = document.getElementById('acceptLegalBtn');
+  const openTermsBtn = document.getElementById('openTermsBtn');
+  const statusMsg = document.getElementById('statusMessage');
+
+  const paypalLink = document.getElementById('paypalLink');
+  if (paypalLink) paypalLink.href = 'https://paypal.me/' + PAYPAL_USER_NAME;
+
+  if (localStorage.getItem(STORAGE_PREFIX + 'legalAccepted') === 'true') {
+    modal.style.display = 'none';
+    if (statusMsg.textContent === 'ACEPTA LOS TÉRMINOS PRIMERO') {
+      statusMsg.textContent = 'TOCA PARA INICIAR';
     }
   }
-  </script>
 
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    html, body { 
-      width:100%; height:100%; overflow:hidden; 
-      background:#040914; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      touch-action:manipulation; -webkit-tap-highlight-color:transparent; user-select:none; 
-    }
+  acceptBtn.addEventListener('click', function(e) {
+    e.preventDefault(); e.stopPropagation();
+    localStorage.setItem(STORAGE_PREFIX + 'legalAccepted', 'true');
+    modal.style.display = 'none';
+    statusMsg.textContent = 'TOCA PARA INICIAR';
+    if (typeof startRadio === 'function' && tracks && tracks.length > 0) startRadio();
+  });
 
-    .radio-container {
-      position:absolute; top:0; left:0; width:100%; height:100%; z-index:10;
-      background:radial-gradient(circle at center, #0a152d 0%, #030611 100%);
-      display:flex; flex-direction:column; align-items:center; justify-content:space-between;
-      padding:2vh 0 2vh 0; overflow:hidden;
-    }
+  openTermsBtn.addEventListener('click', function(e) {
+    e.preventDefault(); e.stopPropagation();
+    modal.style.display = 'flex';
+  });
 
-    .stickers-container {
-      position:absolute; top:0; left:0; width:100%; height:100%;
-      pointer-events:none; z-index:12; overflow:hidden;
-    }
-    .dj-sticker {
-      position:absolute; max-width:110px; max-height:80px; width:auto; height:auto;
-      object-fit:contain; filter:drop-shadow(3px 5px 8px rgba(0,0,0,0.8));
-      opacity:0.85; transition:transform 0.3s ease;
-    }
+  document.getElementById('linkPrivacy').addEventListener('click', function(e) {
+    e.preventDefault();
+    alert('Política de Privacidad - LabTeknøRadiø:\n\nNo recopilamos datos personales. Se utiliza almacenamiento local para guardar tu aceptación de términos y pegatinas.');
+  });
+  document.getElementById('linkTerms').addEventListener('click', function(e) {
+    e.preventDefault();
+    alert('Términos de Uso - LabTeknøRadiø:\n\nEl contenido musical transmitido pertenece a DaløreX. Queda prohibida la redistribución no autorizada.');
+  });
+})();
 
-    .header-title { text-align:center; z-index:15; margin-top:0.5vh; }
-    .header-title h1 {
-      font-size:clamp(1.1rem, 3.8vw, 1.6rem); font-weight:800;
-      color:#00f3ff; text-shadow:0 0 12px rgba(0,243,255,0.6);
-      letter-spacing:2px; text-transform:uppercase;
-    }
-    .header-title span {
-      font-size:clamp(0.65rem, 2vw, 0.85rem);
-      color:#5082a6; letter-spacing:4px; text-transform:uppercase; font-weight:600;
-    }
+const LOCAL_TRACKS = [
+  "track1_liveonthebeat_dalørex.mp3",
+  "track2_raveep1_psykodelialabtekno.mp3",
+  "track3_fuckwarsep_zair.mp3",
+  "track4_accionv1_psykodeliatkno.mp3",
+  "track5_velocity_pskodeliateknowaves.mp3",
+  "track6_healingfrequencys_psykodeliateknowaves.mp3",
+  "track7_Cuoredirave_Valmad.mp3",
+  "track8_expaciux_xailor.mp3",
+  "track9_raveep1_psykodelialabtekno.mp3",
+  "track10_Raveep1_psykodelialabtekno.mp3"
+];
 
-    .display-screen { 
-      width:90%; height:42%; max-height:42vh; 
-      background:rgba(4, 15, 30, 0.85); 
-      border:1px solid rgba(0, 243, 255, 0.3);
-      box-shadow:0 0 25px rgba(0, 243, 255, 0.15), inset 0 0 15px rgba(0,0,0,0.8); 
-      display:flex; flex-direction:column; align-items:center; justify-content:center; 
-      position:relative; overflow:hidden; cursor:pointer;
-      margin:1vh 0; border-radius:16px; backdrop-filter:blur(10px); z-index:15;
-    }
-    .visualizer-canvas { width:100%; height:100%; position:absolute; top:0; left:0; }
-    .status-message { 
-      position:absolute; bottom:8%; left:0; width:100%; text-align:center; 
-      font-size:clamp(0.65rem, 2.2vw, 0.9rem); color:#00f3ff; 
-      text-shadow:0 0 10px #00f3ff; letter-spacing:2px; 
-      font-weight:700; pointer-events:none; z-index:10; font-family:monospace;
-    }
+const DEMO_TRACK = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
 
-    .mode-selectors { display:flex; gap:1rem; margin:0.5vh 0; z-index:20; }
-    .mode-btn { 
-      background:rgba(10, 25, 50, 0.6); 
-      border:1px solid rgba(0, 243, 255, 0.2); border-radius:25px; 
-      padding:0.5rem 1.4rem; font-family:'Segoe UI', sans-serif; 
-      font-weight:700; font-size:clamp(0.75rem, 2.2vw, 0.9rem); 
-      letter-spacing:2px; color:#4a709c; cursor:pointer; 
-      transition:all 0.3s ease; text-transform:uppercase; outline:none; 
-    }
-    .mode-btn.active { 
-      color:#ffffff; text-shadow:0 0 8px #00f3ff; 
-      border-color:#00f3ff; box-shadow:0 0 20px rgba(0, 243, 255, 0.5); 
-      background:linear-gradient(135deg, #005580 0%, #002b40 100%); 
-    }
+let audioCtx, tracks = [], currentIdx = -1, isPlaying = false, hasStarted = false;
+let gainA, gainB, sourceA, sourceB, activeGain = 'A', masterGain, mixTimer, analyser;
+let currentMode = 'set';
 
-    .ad-banner {
-      width: 90%; height: 60px;
-      background: rgba(10, 25, 50, 0.4);
-      border: 1px dashed rgba(0, 243, 255, 0.2);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      z-index: 20; margin-bottom: 0.5vh;
-      color: #4a709c; font-size: 0.75rem; letter-spacing: 1px;
+const MIX_SEGMENT = 144, MIX_CROSSFADE = 15, PLAYLIST_CROSSFADE = 8;
+const vizCanvas = document.getElementById('vizCanvas');
+const ctxViz = vizCanvas.getContext('2d');
+const statusMsg = document.getElementById('statusMessage');
+const btnMix = document.getElementById('btnMix');
+const btnPlaylist = document.getElementById('btnPlaylist');
+let deckA = { source: null, gain: null, startTime: 0, offset: 0 };
+let deckB = { source: null, gain: null, startTime: 0, offset: 0 };
+
+function resizeVizCanvas() {
+  const rect = vizCanvas.parentElement.getBoundingClientRect();
+  vizCanvas.width = rect.width; vizCanvas.height = rect.height;
+}
+resizeVizCanvas();
+window.addEventListener('resize', resizeVizCanvas);
+
+function getAC() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function setupMaster() {
+  const ac = getAC();
+  if (!masterGain) {
+    masterGain = ac.createGain(); masterGain.gain.value = 0.9;
+    analyser = ac.createAnalyser(); analyser.fftSize = 256;
+    masterGain.connect(analyser); analyser.connect(ac.destination);
+  }
+  if (!gainA) { gainA = ac.createGain(); gainA.gain.value = 0; gainA.connect(masterGain); }
+  if (!gainB) { gainB = ac.createGain(); gainB.gain.value = 0; gainB.connect(masterGain); }
+}
+
+async function loadBufferFromUrl(url) {
+  const ac = getAC();
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  const buf = await resp.arrayBuffer();
+  return await ac.decodeAudioData(buf);
+}
+
+async function loadTracks(urlList) {
+  for (const url of urlList) {
+    try {
+      const buffer = await loadBufferFromUrl(url);
+      const name = url.split('/').pop().replace(/\.[^/.]+$/, "").toUpperCase();
+      tracks.push({ name, url, duration: buffer.duration, buffer });
+    } catch (e) {
+      console.warn('❌ Falló pista: ' + url);
     }
+  }
+}
 
-    .bottom-actions {
-      display:flex; gap:8px; z-index:25; margin-bottom:0.5vh; flex-wrap:wrap; justify-content:center;
+async function initTracks() {
+  try {
+    statusMsg.textContent = 'CARGANDO LAB-TRACKS...';
+    await loadTracks(LOCAL_TRACKS);
+    if (tracks.length === 0) {
+      statusMsg.textContent = 'MODO DEMO ONLINE...';
+      await loadTracks([DEMO_TRACK]);
     }
-    .bottom-btn, .upload-btn-label { 
-      background:rgba(0, 243, 255, 0.05); color:#7a9cb9; 
-      padding:7px 12px; border-radius:20px; text-decoration:none; 
-      font-size:0.72rem; border:1px solid rgba(0, 243, 255, 0.15); 
-      letter-spacing:1px; cursor:pointer; font-weight:600;
-      transition:all 0.2s ease; display:flex; align-items:center; gap:4px;
+    if (tracks.length === 0) {
+      statusMsg.textContent = 'ERROR: SIN AUDIO';
+    } else {
+      statusMsg.textContent = (localStorage.getItem(STORAGE_PREFIX + 'legalAccepted') === 'true') 
+        ? 'TOCA PARA INICIAR' 
+        : 'ACEPTA LOS TÉRMINOS PRIMERO';
+      if (hasStarted && tracks.length > 0) startRadio();
     }
-    .bottom-btn:hover, .upload-btn-label:hover { 
-      background:rgba(0, 243, 255, 0.15); color:#00f3ff; 
-      border-color:rgba(0, 243, 255, 0.4);
+  } catch (e) {
+    statusMsg.textContent = 'ERROR DE SISTEMA';
+  }
+}
+
+function stopSource(src) {
+  if (src) { try { src.stop(); } catch(e){} src.disconnect(); }
+}
+
+function stopAll() {
+  stopSource(sourceA); sourceA = null;
+  stopSource(sourceB); sourceB = null;
+  if (mixTimer) clearTimeout(mixTimer);
+}
+
+function transitionToNext() {
+  if (!isPlaying || tracks.length === 0) return;
+  const nextIdx = (currentIdx + 1) % tracks.length;
+  const otherGain = activeGain === 'A' ? gainB : gainA;
+  const currentGain = activeGain === 'A' ? gainA : gainB;
+  stopSource(activeGain === 'A' ? sourceB : sourceA);
+  const source = playSegment(otherGain, nextIdx, 0, 0.001);
+  if (source) {
+    if (activeGain === 'A') { sourceB = source; activeGain = 'B'; deckB = { source, gain: gainB, startTime: audioCtx.currentTime, offset: 0 }; }
+    else { sourceA = source; activeGain = 'A'; deckA = { source, gain: gainA, startTime: audioCtx.currentTime, offset: 0 }; }
+    currentIdx = nextIdx;
+    const dur = (currentMode === 'mix') ? MIX_CROSSFADE : PLAYLIST_CROSSFADE;
+    crossfadeVolumes(currentGain, otherGain, dur);
+    scheduleNext();
+    statusMsg.textContent = tracks[currentIdx].name;
+  }
+}
+
+function playSegment(gainNode, trackIndex, startOffset, initialVol) {
+  const ac = getAC(); setupMaster();
+  if (trackIndex < 0 || trackIndex >= tracks.length) return null;
+  const track = tracks[trackIndex];
+  const source = ac.createBufferSource();
+  source.buffer = track.buffer; source.connect(gainNode);
+  const now = ac.currentTime;
+  source.start(0, startOffset);
+  gainNode.gain.cancelScheduledValues(now);
+  gainNode.gain.setValueAtTime(initialVol, now);
+  source.onended = () => {
+    if (isPlaying && currentIdx === trackIndex) {
+      if (mixTimer) clearTimeout(mixTimer);
+      transitionToNext();
     }
-    #stickerUpload { display:none; }
+  };
+  if (currentMode === 'mix') {
+    const playDur = Math.min(MIX_SEGMENT, track.duration - startOffset);
+    source.stop(now + playDur);
+    const wait = Math.max(0, playDur - MIX_CROSSFADE);
+    mixTimer = setTimeout(() => { if (isPlaying && currentMode === 'mix') transitionToNext(); }, wait * 1000);
+  }
+  return source;
+}
 
-    .legal-modal { 
-      position:fixed; top:0; left:0; width:100%; height:100%; 
-      background:rgba(2, 6, 16, 0.92); backdrop-filter:blur(8px); z-index:1000; 
-      display:flex; align-items:center; justify-content:center; color:#fff; 
+function crossfadeVolumes(fromGain, toGain, duration) {
+  const ac = getAC(); const now = ac.currentTime;
+  fromGain.gain.cancelScheduledValues(now);
+  fromGain.gain.setValueAtTime(fromGain.gain.value || 0.9, now);
+  fromGain.gain.linearRampToValueAtTime(0.001, now + duration);
+  toGain.gain.cancelScheduledValues(now);
+  toGain.gain.setValueAtTime(0.001, now);
+  toGain.gain.linearRampToValueAtTime(0.9, now + duration);
+}
+
+function scheduleNext() {
+  if (!isPlaying || tracks.length === 0) return;
+  clearTimeout(mixTimer);
+  const deck = (activeGain === 'A') ? deckA : deckB;
+  const track = tracks[currentIdx];
+  if (!track || !deck.source) { setTimeout(() => { if(isPlaying) transitionToNext(); }, 500); return; }
+  const elapsed = audioCtx.currentTime - deck.startTime + deck.offset;
+  let remaining = (currentMode === 'mix') ? MIX_SEGMENT - elapsed : track.duration - elapsed;
+  const fade = (currentMode === 'mix') ? MIX_CROSSFADE : PLAYLIST_CROSSFADE;
+  if (remaining <= fade + 0.5) {
+    setTimeout(() => { if(isPlaying) transitionToNext(); }, 100); return;
+  }
+  mixTimer = setTimeout(() => { if(isPlaying) transitionToNext(); }, (remaining - fade) * 1000);
+}
+
+function startRadio() {
+  if (tracks.length === 0) return;
+  getAC(); setupMaster(); stopAll();
+  if (currentIdx < 0 || currentIdx >= tracks.length) currentIdx = 0;
+  const source = playSegment(gainA, currentIdx, 0, 0.9);
+  if (source) {
+    sourceA = source; activeGain = 'A'; deckA = { source, gain: gainA, startTime: audioCtx.currentTime, offset: 0 };
+    isPlaying = true; statusMsg.textContent = tracks[currentIdx].name; scheduleNext();
+  }
+}
+
+function switchMode(mode) {
+  if (currentMode === mode || tracks.length === 0) return;
+  currentMode = mode;
+  btnMix.classList.toggle('active', mode === 'mix');
+  btnPlaylist.classList.toggle('active', mode === 'set' || mode === 'playlist');
+  if (isPlaying) { stopAll(); startRadio(); }
+}
+
+btnMix.addEventListener('click', e => { e.stopPropagation(); switchMode('mix'); });
+btnPlaylist.addEventListener('click', e => { e.stopPropagation(); switchMode('set'); });
+
+function handleFirstTouch(e) {
+  if (document.getElementById('legalModal').style.display !== 'none') return;
+  if (e.target === btnMix || e.target === btnPlaylist || e.target.closest('.bottom-btn') || e.target.closest('.upload-btn-label')) return;
+  if (hasStarted) {
+    if (e.target.closest('.display-screen') || e.target.id === 'vizCanvas') {
+      if (isPlaying) { stopAll(); isPlaying = false; statusMsg.textContent = 'PAUSA'; }
+      else startRadio();
     }
-    .legal-content { 
-      background:#071224; border:1px solid #00f3ff; border-radius:20px; 
-      padding:2rem; max-width:380px; width:88%; text-align:center; 
-      box-shadow:0 0 30px rgba(0,243,255,0.25);
-    }
-    .legal-content h2 { color:#00f3ff; margin-bottom:1rem; font-size:1.2rem; letter-spacing:1px; }
-    .legal-content p { font-size:0.8rem; margin:0.8rem 0; line-height:1.5; color:#a0b0c0; }
-    .legal-content a { color:#00f3ff; text-decoration:underline; cursor:pointer; }
-    .legal-btn { 
-      background:linear-gradient(135deg, #00f3ff 0%, #0088cc 100%); 
-      border:none; color:#020610; font-weight:800; 
-      padding:0.8rem 2rem; border-radius:30px; cursor:pointer; 
-      margin-top:1.2rem; font-size:0.9rem; letter-spacing:1px;
-      box-shadow:0 0 15px rgba(0,243,255,0.4); transition:all 0.2s ease;
-    }
-    .legal-btn:hover { transform:scale(1.03); }
+    return;
+  }
+  getAC(); hasStarted = true;
+  if (tracks.length === 0) { initTracks().then(() => { if(tracks.length>0) startRadio(); }); }
+  else startRadio();
+}
 
-    @media (max-width:400px) {
-      .mode-btn { padding:0.5rem 1rem; font-size:0.7rem; }
-      .display-screen { height:40%; }
-      .bottom-btn, .upload-btn-label { font-size:0.65rem; padding:6px 8px; }
-      .dj-sticker { max-width:80px; max-height:60px; }
-      .ad-banner { height: 50px; font-size: 0.65rem; }
-    }
-  </style>
-</head>
-<body>
-  <div class="radio-container">
-    <div class="stickers-container" id="stickersContainer"></div>
+document.body.addEventListener('click', handleFirstTouch);
+document.body.addEventListener('touchstart', handleFirstTouch);
 
-    <div class="header-title">
-      <h1>DaløreX LabTknøRadiø</h1>
-      <span>AI Techno Repository</span>
-    </div>
+function drawVisualizer() {
+  requestAnimationFrame(drawVisualizer);
+  const w = vizCanvas.width, h = vizCanvas.height;
+  const cx = w/2, cy = h/2, baseRadius = Math.min(w,h)*0.28, time = Date.now()*0.008;
+  ctxViz.clearRect(0,0,w,h);
 
-    <div class="display-screen" id="screenBtn">
-      <canvas class="visualizer-canvas" id="vizCanvas"></canvas>
-      <div class="status-message" id="statusMessage">ACEPTA LOS TÉRMINOS PRIMERO</div>
-    </div>
+  if (!analyser || !isPlaying) {
+    ctxViz.beginPath(); ctxViz.arc(cx,cy,baseRadius+Math.sin(time*0.8)*4,0,Math.PI*2);
+    ctxViz.strokeStyle='hsla(190,100%,50%,0.5)'; ctxViz.lineWidth=2; ctxViz.stroke();
+    return;
+  }
 
-    <div class="mode-selectors">
-      <button class="mode-btn" id="btnMix">MiX</button>
-      <button class="mode-btn active" id="btnPlaylist">SET</button>
-    </div>
-    
-    <div class="ad-banner">
-      <span>Espacio publicitario / Afiliados</span>
-    </div>
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  analyser.getByteFrequencyData(dataArray);
+  let avg = 0; for(let i=0;i<bufferLength;i++) avg+=dataArray[i]; avg=avg/bufferLength/255;
 
-    <div class="bottom-actions">
-      <a class="bottom-btn" id="paypalLink" href="https://paypal.me/DAVIDLOPEZDALOREX" target="_blank" rel="noopener">☕ DONAR</a>
-      <label class="upload-btn-label" for="stickerUpload">📷 SUBIR LOGOS</label>
-      <input type="file" id="stickerUpload" accept="image/*" multiple>
-      <button class="bottom-btn" id="openTermsBtn">📋 TÉRMINOS</button>
-    </div>
-  </div>
+  const glow = ctxViz.createRadialGradient(cx,cy,baseRadius*0.4,cx,cy,baseRadius*1.6);
+  glow.addColorStop(0,'hsla(210,100%,50%,0.25)'); glow.addColorStop(1,'hsla(190,100%,50%,0)');
+  ctxViz.fillStyle=glow; ctxViz.beginPath(); ctxViz.arc(cx,cy,baseRadius*1.6,0,Math.PI*2); ctxViz.fill();
 
-  <div class="legal-modal" id="legalModal">
-    <div class="legal-content">
-      <h2>DaløreX LabTknøRadiø™</h2>
-      <p>Bienvenido al repositorio y laboratorio de producciones de música techno creadas con inteligencia artificial por DaløreX.</p>
-      <p>Utilizamos cookies técnicas locales exclusivamente para el funcionamiento continuo del reproductor Web Audio y para guardar tus pegatinas de marcas. En el futuro, la plataforma podrá habilitar enlaces y banners de afiliados o publicidad relacionada con plugins, equipamiento de audio y patrocinadores.</p>
-      <p>Al acceder aceptas nuestra <a id="linkPrivacy" href="#">Política de Privacidad</a> y los <a id="linkTerms" href="#">Términos de Uso</a>.</p>
-      <button class="legal-btn" id="acceptLegalBtn">ACEPTAR Y ENTRAR</button>
-    </div>
-  </div>
+  const mainRadius = baseRadius*(0.85+avg*0.65);
+  const mainGrad = ctxViz.createRadialGradient(cx,cy,0,cx,cy,mainRadius);
+  mainGrad.addColorStop(0,'hsla(220,100%,60%,0.3)');
+  mainGrad.addColorStop(0.7,'hsla(190,100%,50%,0.6)');
+  mainGrad.addColorStop(1,'hsla(180,100%,60%,0.9)');
+  ctxViz.fillStyle=mainGrad; ctxViz.beginPath(); ctxViz.arc(cx,cy,mainRadius,0,Math.PI*2); ctxViz.fill();
 
-  <script src="app.js"></script>
-</body>
-</html>
+  ctxViz.beginPath(); ctxViz.arc(cx,cy,mainRadius,0,Math.PI*2);
+  ctxViz.strokeStyle='hsla(180,100%,75%,0.9)'; ctxViz.lineWidth=2; ctxViz.stroke();
+
+  for(let i=0;i<64;i++) {
+    const val = dataArray[Math.floor(i*bufferLength/64)]/255;
+    const angle = (i/64)*Math.PI*2-Math.PI/2+time*1.5;
+    const spikeLen = val*baseRadius*1.2;
+    ctxViz.beginPath();
+    ctxViz.moveTo(cx+Math.cos(angle)*mainRadius, cy+Math.sin(angle)*mainRadius);
+    ctxViz.lineTo(cx+Math.cos(angle)*(mainRadius+spikeLen), cy+Math.sin(angle)*(mainRadius+spikeLen));
+    ctxViz.strokeStyle=`hsla(${180 + (i*2)%40},100%,60%,${0.5+val*0.5})`;
+    ctxViz.lineWidth=1.5+val*2; ctxViz.stroke();
+  }
+
+  for(let i=0;i<40;i++) {
+    const val = dataArray[Math.floor(i*bufferLength/40)]/255;
+    const barHeight = val*h*0.4;
+    ctxViz.fillStyle=`hsla(${190 + (i*2)},100%,55%,0.65)`;
+    ctxViz.fillRect(i*(w/40), h-barHeight, (w/40)-2, barHeight);
+  }
+}
+
+drawVisualizer();
+initStickerSystem();
+initTracks();
