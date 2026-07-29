@@ -1,74 +1,44 @@
 const PAYPAL_USER_NAME = 'DAVIDLOPEZDALOREX';
 const STORAGE_PREFIX = 'labtekno_';
 
-const DEFAULT_STICKERS = [
-  'https://via.placeholder.com/120x60/00f3ff/000000?text=DALOREX+LAB',
-  'https://via.placeholder.com/90x90/ff0055/ffffff?text=TEKNO+RADIO'
+// --------------------------------------------------------------------------
+// LISTA DE LOGOS FIJOS DEL SISTEMA (Modifica o añade los nombres de tus archivos)
+// --------------------------------------------------------------------------
+const FIXED_LOGOS = [
+  { src: 'logo_principal.png', isMain: true,  top: '5%',   left: '50%', transform: 'translateX(-50%)', rot: 0 },
+  { src: 'logo1.png',          isMain: false, top: '12%',  left: '6%',  rot: -12 },
+  { src: 'logo2.png',          isMain: false, top: '10%',  right: '6%', rot: 15 },
+  { src: 'logo3.png',          isMain: false, bottom: '8%', left: '8%',  rot: -8 },
+  { src: 'logo4.png',          isMain: false, bottom: '8%', right: '8%', rot: 10 }
 ];
 
 function initStickerSystem() {
   const container = document.getElementById('stickersContainer');
-  const uploadInput = document.getElementById('stickerUpload');
-  if (!container || !uploadInput) return;
-
-  let savedStickers = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'stickers') || 'null');
-  if (!savedStickers || savedStickers.length === 0) {
-    savedStickers = DEFAULT_STICKERS;
-  }
-
-  renderStickers(savedStickers);
-
-  uploadInput.addEventListener('change', function(e) {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    const newStickers = [...savedStickers];
-    let loadedCount = 0;
-
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        newStickers.push(event.target.result);
-        loadedCount++;
-        if (loadedCount === files.length) {
-          localStorage.setItem(STORAGE_PREFIX + 'stickers', JSON.stringify(newStickers));
-          renderStickers(newStickers);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  });
-}
-
-function renderStickers(stickerList) {
-  const container = document.getElementById('stickersContainer');
   if (!container) return;
   container.innerHTML = '';
 
-  const positions = [
-    { top: '4%', left: '6%', rot: -12 },
-    { top: '3%', right: '8%', rot: 15 },
-    { top: '50%', left: '3%', rot: -8 },
-    { top: '52%', right: '4%', rot: 10 },
-    { bottom: '10%', left: '8%', rot: -5 },
-    { bottom: '11%', right: '7%', rot: 14 },
-    { top: '15%', left: '15%', rot: 6 },
-    { top: '18%', right: '16%', rot: -11 }
-  ];
-
-  stickerList.forEach((src, idx) => {
+  FIXED_LOGOS.forEach(logo => {
     const img = document.createElement('img');
-    img.src = src;
-    img.className = 'dj-sticker';
-    
-    const pos = positions[idx % positions.length];
-    const rot = pos.rot || (Math.random() * 30 - 15);
-    
-    if (pos.top) img.style.top = pos.top;
-    if (pos.bottom) img.style.bottom = pos.bottom;
-    if (pos.left) img.style.left = pos.left;
-    if (pos.right) img.style.right = pos.right;
+    img.src = logo.src;
+    img.className = 'dj-sticker' + (logo.isMain ? ' logo-main' : '');
 
-    img.style.transform = `rotate(${rot}deg)`;
+    // Posicionamiento en pantalla
+    if (logo.top) img.style.top = logo.top;
+    if (logo.bottom) img.style.bottom = logo.bottom;
+    if (logo.left) img.style.left = logo.left;
+    if (logo.right) img.style.right = logo.right;
+
+    let transformStr = `rotate(${logo.rot || 0}deg)`;
+    if (logo.transform) {
+      transformStr = `${logo.transform} ${transformStr}`;
+    }
+    img.style.transform = transformStr;
+
+    // Si la imagen falla (porque no la has subido aún a GitHub), no rompe el diseño
+    img.onerror = function() {
+      this.style.display = 'none';
+    };
+
     container.appendChild(img);
   });
 }
@@ -111,7 +81,7 @@ function renderStickers(stickerList) {
   if (linkPrivacy) {
     linkPrivacy.addEventListener('click', function(e) {
       e.preventDefault();
-      alert('Política de Privacidad - LabTeknøRadiø:\n\nNo recopilamos datos personales. Se utiliza almacenamiento local para guardar tu aceptación de términos y pegatinas.');
+      alert('Política de Privacidad - LabTeknøRadiø:\n\nNo recopilamos datos personales. Se utiliza almacenamiento local exclusivamente para guardar tu preferencia de términos.');
     });
   }
 
@@ -124,6 +94,7 @@ function renderStickers(stickerList) {
   }
 })();
 
+// Archivos de Audio Locales
 const LOCAL_TRACKS = [
   "track1_liveonthebeat_dalørex.mp3",
   "track2_raveep1_psykodelialabtekno.mp3",
@@ -326,7 +297,7 @@ if (btnPlaylist) btnPlaylist.addEventListener('click', e => { e.stopPropagation(
 function handleFirstTouch(e) {
   const modal = document.getElementById('legalModal');
   if (modal && modal.style.display !== 'none') return;
-  if (e.target === btnMix || e.target === btnPlaylist || e.target.closest('.bottom-btn') || e.target.closest('.upload-btn-label')) return;
+  if (e.target === btnMix || e.target === btnPlaylist || e.target.closest('.bottom-btn')) return;
   
   if (hasStarted) {
     if (e.target.closest('.display-screen') || e.target.id === 'vizCanvas') {
