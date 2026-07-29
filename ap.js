@@ -73,7 +73,7 @@ function renderStickers(stickerList) {
   });
 }
 
-// Inicialización de la modal legal con verificaciones seguras
+// Control seguro del Modal Legal
 (function() {
   const modal = document.getElementById('legalModal');
   const acceptBtn = document.getElementById('acceptLegalBtn');
@@ -160,8 +160,6 @@ function resizeVizCanvas() {
   vizCanvas.width = rect.width; 
   vizCanvas.height = rect.height;
 }
-resizeVizCanvas();
-window.addEventListener('resize', resizeVizCanvas);
 
 function getAC() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -405,9 +403,9 @@ function drawVisualizer() {
   }
 }
 
-// Inicializaciones cuando el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', () => {
   resizeVizCanvas();
+  window.addEventListener('resize', resizeVizCanvas);
   drawVisualizer();
   initStickerSystem();
   initTracks();
