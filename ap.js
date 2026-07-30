@@ -1,8 +1,8 @@
-Roconst PAYPAL_USER_NAME = 'DAVIDLOPEZDALOREX';
+const PAYPAL_USER_NAME = 'DAVIDLOPEZDALOREX';
 const STORAGE_PREFIX = 'labtekno_';
 
 // --------------------------------------------------------------------------
-// LISTA DE LOGOS FIJOS DEL SISTEMA (Modifica o añade los nombres de tus archivos)
+// LISTA DE LOGOS FIJOS DEL SISTEMA
 // --------------------------------------------------------------------------
 const FIXED_LOGOS = [
   { src: 'logo_principal.png', isMain: true,  top: '5%',   left: '50%', transform: 'translateX(-50%)', rot: 0 },
@@ -22,7 +22,6 @@ function initStickerSystem() {
     img.src = logo.src;
     img.className = 'dj-sticker' + (logo.isMain ? ' logo-main' : '');
 
-    // Posicionamiento en pantalla
     if (logo.top) img.style.top = logo.top;
     if (logo.bottom) img.style.bottom = logo.bottom;
     if (logo.left) img.style.left = logo.left;
@@ -34,7 +33,6 @@ function initStickerSystem() {
     }
     img.style.transform = transformStr;
 
-    // Si la imagen falla (porque no la has subido aún a GitHub), no rompe el diseño
     img.onerror = function() {
       this.style.display = 'none';
     };
@@ -43,7 +41,7 @@ function initStickerSystem() {
   });
 }
 
-// Control seguro del Modal Legal
+// Control seguro del Modal Legal (CORREGIDO Y OPTIMIZADO)
 (function() {
   const modal = document.getElementById('legalModal');
   const acceptBtn = document.getElementById('acceptLegalBtn');
@@ -62,11 +60,25 @@ function initStickerSystem() {
 
   if (acceptBtn) {
     acceptBtn.addEventListener('click', function(e) {
-      e.preventDefault(); e.stopPropagation();
+      e.preventDefault(); 
+      e.stopPropagation();
+      
+      // 1. Guardar estado legal
       localStorage.setItem(STORAGE_PREFIX + 'legalAccepted', 'true');
+      
+      // 2. Ocultar modal de inmediato
       if (modal) modal.style.display = 'none';
-      if (statusMsg) statusMsg.textContent = 'TOCA PARA INICIAR';
-      if (typeof startRadio === 'function' && tracks && tracks.length > 0) startRadio();
+      
+      // 3. Desbloquear contexto de Audio para evitar restricciones de Autoplay
+      try { getAC(); } catch(err) {}
+
+      // 4. Actualizar estado y arrancar solo si las pistas ya están cargadas
+      if (tracks && tracks.length > 0) {
+        hasStarted = true;
+        startRadio();
+      } else {
+        if (statusMsg) statusMsg.textContent = 'CARGANDO LAB-TRACKS...';
+      }
     });
   }
 
@@ -177,15 +189,17 @@ async function initTracks() {
       if (statusMsg) statusMsg.textContent = 'MODO DEMO ONLINE...';
       await loadTracks([DEMO_TRACK]);
     }
+    
     if (tracks.length === 0) {
       if (statusMsg) statusMsg.textContent = 'ERROR: SIN AUDIO';
     } else {
+      const isAccepted = localStorage.getItem(STORAGE_PREFIX + 'legalAccepted') === 'true';
       if (statusMsg) {
-        statusMsg.textContent = (localStorage.getItem(STORAGE_PREFIX + 'legalAccepted') === 'true') 
-          ? 'TOCA PARA INICIAR' 
-          : 'ACEPTA LOS TÉRMINOS PRIMERO';
+        statusMsg.textContent = isAccepted ? 'TOCA PARA INICIAR' : 'ACEPTA LOS TÉRMINOS PRIMERO';
       }
-      if (hasStarted && tracks.length > 0) startRadio();
+      if (hasStarted && isAccepted) {
+        startRadio();
+      }
     }
   } catch (e) {
     if (statusMsg) statusMsg.textContent = 'ERROR DE SISTEMA';
