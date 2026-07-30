@@ -97,7 +97,7 @@ function initStickerSystem() {
 // Archivos de Audio Locales
 const LOCAL_TRACKS = [
   "track1_liveonthebeat_dalørex.mp3",
-  "track2_sends_ dalorex.mp3",
+  "track2_sends_dalorex.mp3",
   "track3_fuckwarsep_zair.mp3",
   "track4_accionv1_psykodeliatkno.mp3",
   "track5_velocity_pskodeliateknowaves.mp3",
