@@ -1,4 +1,4 @@
-const PAYPAL_USER_NAME = 'DAVIDLOPEZDALOREX';
+Roconst PAYPAL_USER_NAME = 'DAVIDLOPEZDALOREX';
 const STORAGE_PREFIX = 'labtekno_';
 
 // --------------------------------------------------------------------------
@@ -97,7 +97,7 @@ function initStickerSystem() {
 // Archivos de Audio Locales
 const LOCAL_TRACKS = [
   "track1_liveonthebeat_dalørex.mp3",
-  "track2_raveep1_psykodelialabtekno.mp3",
+  "track2_sends_ dalorex.mp3",
   "track3_fuckwarsep_zair.mp3",
   "track4_accionv1_psykodeliatkno.mp3",
   "track5_velocity_pskodeliateknowaves.mp3",
